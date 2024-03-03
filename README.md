@@ -6,7 +6,7 @@ This is a repo where I try out different things in C++.
 Source file are in `src\`, headers in `include\`.
 Any libraries will be added in `lib\`.
 
-The `make` file 
+The `make` file takes care of dependencies, linked libraries, file management of compiled files.
 
 
 
