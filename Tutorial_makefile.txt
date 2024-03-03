@@ -1,0 +1,288 @@
+Source: https://courses.cs.duke.edu/spring04/cps108/resources/makefiles/sample.html
+
+
+A sample makefile and how it works
+Let's start by looking at a sample makefile:
+
+##############################################################################
+#
+#  Sample Makefile for C++ applications
+#    Works for single and multiple file programs.
+#    written by Robert Duvall
+#    modified by Owen Astrachan
+#    and by Garrett Mitchener
+# 
+##############################################################################
+
+##############################################################################
+# Application-specific variables
+# EXEC is the name of the executable file
+# SRC_FILES is a list of all source code files that must be linked
+#           to create the executable
+##############################################################################
+
+EXEC      = usepix
+SRC_FILES = application.cc displaycommand.cc filelister.cc menu.cc \
+        menuitem.cc pixmap.cc quitcommand.cc readcommand.cc \
+        usepix.cc
+
+
+##############################################################################
+# Where to find course related files
+# COURSE_DIR is where various header files (.h) and library files (.so and .a)
+# are found.  LIB_DIR is where other libraries not specific to the course
+# are kept.
+
+# for CS machines
+# COURSE_DIR = /usr/project/courses/cps108/lib
+# LIB_DIR     = /usr/local/lib
+
+# for acpub machines
+COURSE_DIR = /afs/acpub/users/o/l/ola/cps108/lib
+LIB_DIR     = /afs/acpub/project/cps/lib
+
+##############################################################################
+# Compiler specifications
+# These match the variable names given in /usr/share/lib/make/make.rules
+# so that make's generic rules work to compile our files.
+# gmake prefers CXX and CXXFLAGS for c++ programs
+##############################################################################
+# Which compiler should be used
+CXX = g++
+CC = $(CXX)
+
+# What flags should be passed to the compiler
+
+DEBUG_LEVEL     = -g
+EXTRA_CCFLAGS   = -Wall
+CXXFLAGS        = $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
+CCFLAGS         = $(CXXFLAGS)
+
+# What flags should be passed to the C pre-processor
+#   In other words, where should we look for files to include - note,
+#   you should never need to include compiler specific directories here
+#   because each compiler already knows where to look for its system
+#   files (unless you want to override the defaults)
+
+CPPFLAGS        = -I. \
+                  -I$(COURSE_DIR)
+
+# What flags should be passed to the linker
+#   In other words, where should we look for libraries to link with - note,
+#   you should never need to include compiler specific directories here
+#   because each compiler already knows where to look for its system files.
+
+LDFLAGS         = -L. \
+                  -L$(COURSE_DIR) \
+                  -R $(LIB_DIR):$(COURSE_DIR)
+
+# What libraries should be linked with.
+# For example, -lm links with libm.so, the math library.
+# If you make a library of your own, say, libscandir.a, you have to link it
+# in by adding -lscandir here.
+LDLIBS          = -lscandir
+
+# All source files have associated object files.
+# This line sets `OFILES' to have the same value as `SRC_FILES' but
+# with all the .cc's changed into .o's.
+O_FILES         = $(SRC_FILES:%.cc=%.o)
+
+
+###########################################################################
+# Additional rules make should know about in order to compile our files
+###########################################################################
+# all is the default rule
+all: $(EXEC)
+
+
+# exec depends on the object files
+# It is made automagically using the LDFLAGS and LOADLIBES variables.
+# The .o files are made automagically using the CXXFLAGS variable.
+$(EXEC): $(O_FILES)
+
+# to use `makedepend', the target is `depend'
+depend:
+   ->   makedepend -- $(CXXFLAGS) -- -Y $(SRC_FILES)
+
+
+
+# clean up after you're done
+clean:
+   ->   $(RM) $(O_FILES) core *.rpo
+
+very-clean: clean
+   ->   $(RM) $(EXEC)
+Note that the arrows -> represent places where you should put tab characters, not eights spaces. It hath been decreed that this shalt be a tab character. Emacs and XEmacs have a makefile mode, which you can get into by typing M-x makefile-mode if it doesn't come up automatically. In makefile mode, pressing the tab key inserts a real tab. Alternatively, the keystrokes C-q C-i or C-q tab will enter a tab character in any mode. (C-q is emacs for quote next key unprocessed.)
+
+You should name your makefile `Makefile' with that capitalization. Make looks for that file automatically. If you don't name it that, you'll have to tell make specifically which file to use (as in gmake -f somethingelse ...).
+
+1.1 The short answer
+The short answer of how to use that makefile is this: Change the line that says SRC_FILES = so that the right-hand side of the equals sign is a list of all the .cc files in your project. Change the line that says EXEC = so that the right-hand side of the equals sign is the name of your executable.
+
+The first time you use make, add a .cc file, or any time you change whether a .cc file includes a particular .h file, run the command:
+
+gmake depend
+To build your executable in general, run the command gmake. To clean up your directory and get rid of files you don't need, run gmake clean.
+
+These short directions will be enough to get you through the first assignment or two, but after that, you'll probably need to start changing more stuff further down in the makefile, and to know what to do, you'll have to understand how make works. So, without further ado...
+
+1.2 Comments
+Any line which begins with a sharp sign (#) is ignored by the makefile as a comment. Comment lines can be used to leave instructions for whoever has to use your makefile (including yourself). They are also useful for allowing someone to select between alternative definitions of macros. For example, several lines of the makefile have been commented out here:
+
+# for CS machines
+# COURSE_DIR = /usr/project/courses/cps108/lib
+# LIB_DIR     = /usr/local/lib
+
+# for acpub machines
+COURSE_DIR = /afs/acpub/users/o/l/ola/cps108/lib
+LIB_DIR     = /afs/acpub/project/cps/lib
+The idea is that you should un-comment exactly one definition for COURSE_DIR and LIB_DIR, depending on which computer system you're using. By keeping these alternatives in the file with all but one hidden, you make it easier on yourself to move your project from one network to another.
+1.3 Continuing long lines
+Continuing long lines is easy, just put a backslash at the end of the line. Make pretends the following long command is all on one line:
+
+SRC_FILES = application.cc displaycommand.cc filelister.cc menu.cc \
+        menuitem.cc pixmap.cc quitcommand.cc readcommand.cc \
+        usepix.cc
+Make replaces the backslashes with a space when it combines the lines, so just don't break a line in the middle of a word.
+1.4 Macros
+In a makefile, it is very easy to define a macro, or text-substitution. These are similar to environment variables in the shell or string variables in most programming languages:
+
+COURSE_DIR = /afs/acpub/users/o/l/ola/cps108/lib
+Whenever make sees $(COURSE_DIR) in the makefile, it will substitute in the text contained in the macro COURSE_DIR. Remember, use the dollar sign and parentheses only when you want to reference the macro. Just use its name to assign it a value.
+
+One really useful thing about macros is that they can reference other macros:
+
+CXXFLAGS = $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
+The trick is that make doesn't substitute for DEBUG_LEVEL immediately when you define CXXFLAGS. Instead, when you reference CXXFLAGS, it expands into $(DEBUG_LEVEL) $(EXTRA_CCFLAGS). Since that still has $'s in it, make expands it again into -g -Wall. Therefore, you can define macros in any order, as long as they are defined before they are actually expanded.
+
+1.5 Special $ commands
+One line of the sample makefile illustrates a special command that make provides through the $ symbol:
+
+O_FILES = $(SRC_FILES:%.cc=%.o)
+This particular line sets O_FILES to be the same as SRC_FILES but with all the .cc suffixes replaced with .o. This is useful because you can easily add a new class to your project by adding its .cc filename to the definition of SRC_FILES. Its object file will automatically be added to O_FILES. This means that adding a file to your project requires changing only one line in your makefile. Furthermore, having a list of all source and object files is quite useful, as you'll soon see.
+
+1.6 Basic dependency rules
+Dependency rules are statements that make uses to determine which files need to be brought up to date. They consist of a line declaring what target file depends on which dependencies, followed by zero or more command lines which tell it what to do to bring the target up to date. For example (from another makefile):
+
+OBJ = menu.o application.o pixmap.o
+CXX = g++
+CXXFLAGS = -g -Wall
+
+usepix: $(OBJ)
+   ->   $(CXX) $(CXXFLAGS) -o usepix $(OBJ) -lm
+The executable usepix is the target and all those .o files are the dependencies. The $(CXX) line turns into a command to g++ when all those macros are expanded.
+
+Again I must say, it hath been declared that command lines shalt begin with a tab character and end with a new-line character. If the last line of your makefile is not doing anything, it may be that you forgot to push enter at the end of that line.
+
+The dependency line states that the file usepix depends upon the files in the macro OBJ, which in this case expands to application.o, menu.o, etc. If you ask make to update usepix by entering the command gmake usepix on the shell command line, it will find this dependency line and look at all the .o files usepix depends upon. If one of them is determined to be out of date, it is updated. If after all that one of those .o files is newer than usepix, or if usepix doesn't exist, make will execute the compilation command underneath the dependency line and build an up-to-date version of usepix. You may have as many command lines as you want, as long as they all begin with tab characters. You may also have zero command lines, which is useful for pseudo-targets and implicit rules, which I will explain later. All those macros are fully expanded before make looks at any dependencies.
+
+1.7 Special dependency rules
+The first dependency is magic. When you execute make, it expects you to give it the name of a target to update on the command line, ie.gmake usepix. If you don't give a target, it simply updates the first target it comes to. In the first sample makefile, it's all, and in the smaller second example, it's usepix, but in a larger project, there might be several test programs, libraries, and so on. It's therefore common to have a first target called `all' which depends on the files you want to update most frequently. No file named `all' ever really exists because it is a pseudo-target. Which brings us to the next item...
+
+Pseudo-targets are really useful. A pseudo-target is a file which never really exists. It has a dependency section in the makefile, and if you tell make to update that target, it will do its normal stuff and update all the dependencies, then run any commands underneath the dependency line.
+
+Here's an example that uses a pseudo-target to effectively combine two other targets so that you can update them with one command:
+
+testsuite: test1 test2
+
+test1: test1.o foo.o bar.o
+   ->   ...
+test2: test2.o foo.o bar.o
+   ->   ...
+Issuing the command gmake testsuite causes make to update test1 and test2.
+
+Another way to use pseudo-targets is to have a target which has no dependencies but has a few commands listed under it. In the sample makefile, `clean' is just such a pseudo-target:
+
+clean:
+   ->   $(RM) $(O_FILES) core *.rpo
+Targets which have no dependencies are always considered out of date and any commands listed under them are always executed. If you were to issue the command gmake clean using the sample makefile, make would remove all those .o files from the current directory.
+
+Having a `cleanup' target or two is quite useful: You're not likely to mistype gmake clean and even if you did, it wouldn't be a disaster. But notice how easy it is to mistype rm -f *.o (remove all your .o files) as rm -f *>o (remove everything and re-direct any output into a file called o). Holding down the shift key a moment too long can wipe out weeks of work, and make can easily prevent such goofs.
+
+Here are some sample pseudo-targets that are useful for lots of different things. Note that some macros are used that you'll have to define for yourself elsewhere:
+
+all: usepix testpix toast pancake
+
+clean:
+   ->   rm -f $(OBJ)
+
+# More about this one in the section on makedepend...
+depend:
+   ->   makedepend $(CXXFLAGS) -Y $(SRC)
+
+# This is a neat way to make a compressed archive file for
+# saving or submitting your project.
+# Note that several commands go with this target; all will be
+# executed if you run gmake archive.
+archive:
+   ->   rm -rf project project.tar.gz
+   ->   mkdir project
+   ->   cp $(SUBMISSIONS) project
+   ->   tar -cf project.tar project
+   ->   gzip project.tar
+
+# This next one makes a printout of all your source code.
+# The $? means all dependencies newer than the target.
+# See the section on special macros
+
+PRINTCMD = enscript -2rG -pprintout.ps
+
+print: $(SOURCE) $(HEADERS)
+   ->   echo spooling $? to printer using $(PRINTCMD)
+   ->   $(PRINTCMD) $?
+   ->   print printout.ps
+   ->   rm printout.ps
+1.8 Special macros
+Now all those $@ thingees that appear in the example above and elsewhere in the makefile are clearly not plain old macros, since they're never defined and yet this makefile works quite well, I promise. The reason is that there are a number of special macros with one character names that are only useable as part of a dependency rule:
+
+$@
+The file name of the target.
+
+$<
+The name of the first dependency.
+
+$*
+The part of a filename which matched a suffix rule.
+
+$?
+The names of all the dependencies newer than the target separated by spaces.
+
+$^
+The names of all the dependencies separated by spaces, but with duplicate names removed.
+
+$+
+The names of all the dependencies separated by spaces with duplicate names included and in the same order as in the rule.
+
+Some of these are only useful as part of suffix rules which are described in section Suffix rules.
+
+1.9 Suffix rules
+Most of the commands you use to update files are similar; to build most C++ programs, you call g++ with similar flags and really just change the name of the file you're compiling. Make allows you to define suffix rules so that you don't have to put command lines underneath all your dependencies. For example, here is the built-in suffix rule that gmake uses to compile a .cc file into a .o file:
+
+COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+OUTPUT_OPTION = -o $@
+
+%.o: %.cc
+   ->   $(COMPILE.cc) $< $(OUTPUT_OPTION)
+With suffix rules, you can leave out the command part of a dependency rule, for example:
+
+usepix.o: usepix.cc usepix.h pixmap.h
+If make decides to update usepix.o, it sees from this line that it depends on usepix.cc, and it sees from the %.cc: %.o rule that to update it, it should run g++ using the flags defined in CXXFLAGS and to compile usepix.cc.
+
+Make has a number of built in suffix rules, which are roughly as follows:
+
+COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+LINK.o = $(CC) $(LDFLAGS) $(TARGET_ARCH)
+OUTPUT_OPTION = -o $@
+
+%: %.o
+   ->   $(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+%.o: %.c
+   ->   $(COMPILE.c) $< $(OUTPUT_OPTION)
+
+%.o: %.cc
+   ->   $(COMPILE.cc) $< $(OUTPUT_OPTION)
+You can get the full list from the command gmake -p -f/dev/null/.
+
+Next Previous Contents
