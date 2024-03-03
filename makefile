@@ -1,15 +1,17 @@
 # Makefile
 
-# Compiler and compiler flags
-CXX = g++
-DEBUG = -g
-CXXFLAGS = -std=c++20 -Wall $(DEBUG)
-
 # Directories
 SRC_DIR = src
 INC_DIR = include
 BUILD_DIR = build
 BIN_DIR = bin
+LD_DIR =  /usr/local/lib 
+
+# Compiler and compiler flags
+CXX = g++
+DEBUG = -g
+CXXFLAGS = -std=c++20 -Wall $(DEBUG)
+LDFLAGS = -lpthread -L./lib -L$(LD_DIR) 
 
 # Source files
 SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
@@ -26,7 +28,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(INC_DIRS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(INC_DIRS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(BUILD_DIR)
