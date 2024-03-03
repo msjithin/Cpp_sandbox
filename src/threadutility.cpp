@@ -64,3 +64,91 @@ void threading_and_heap()
 	delete[] numbers;
 	return;
 }
+
+// #include <mutex>
+
+// std::mutex myMutex;
+
+// // ...
+
+// void sharedResourceAccessFunction() {
+//     std::lock_guard<std::mutex> lock(myMutex);
+//     // Code to access shared resource
+// }
+
+// #include <semaphore>
+
+// std::counting_semaphore<int> mySemaphore(1);
+
+// // ...
+
+// void sharedResourceAccessFunction() {
+//     mySemaphore.acquire(); // Wait until semaphore value is greater than zero
+//     // Code to access shared resource
+//     mySemaphore.release(); // Increment semaphore value
+// }
+
+// #include <atomic>
+
+// std::atomic<int> sharedVariable(0);
+
+// // ...
+
+// void sharedResourceAccessFunction() {
+//     // Code to access shared resource using atomic operations
+// }
+
+// #include <condition_variable>
+
+// std::mutex myMutex;
+// std::condition_variable myCondition;
+
+// // ...
+
+// void sharedResourceAccessFunction() {
+//     std::unique_lock<std::mutex> lock(myMutex);
+//     // Code to check a condition
+//     myCondition.wait(lock); // Release the lock and wait for the condition
+//     // Code to access shared resource
+// }
+
+#include <iostream>
+#include <memory>
+
+class MyClass {
+public:
+    MyClass(int value) : data(value) {
+        std::cout << "Constructing MyClass with value: " << data << std::endl;
+    }
+
+    ~MyClass() {
+        std::cout << "Destructing MyClass with value: " << data << std::endl;
+    }
+
+    void printData() {
+        std::cout << "Data: " << data << std::endl;
+    }
+
+private:
+    int data;
+};
+
+void smart_pointer_test() {
+    // Example using std::unique_ptr
+    std::unique_ptr<MyClass> uniquePtr(new MyClass(42));
+    uniquePtr->printData(); // Accessing member function
+
+    // std::unique_ptr automatically releases memory when it goes out of scope
+
+    // Example using std::shared_ptr
+    std::shared_ptr<MyClass> sharedPtr1 = std::make_shared<MyClass>(10);
+    std::shared_ptr<MyClass> sharedPtr2 = sharedPtr1; // shared ownership
+
+    sharedPtr1->printData();
+    sharedPtr2->printData();
+
+    // sharedPtr1 and sharedPtr2 share ownership, so the object will be deleted
+    // only when both sharedPtr1 and sharedPtr2 go out of scope
+
+    return;
+}

@@ -1,6 +1,7 @@
 #include <thread>    // for Threading
 #include <iostream>
 #include <stdlib.h>  //for using the function sleep
+#include <unistd.h>
 
 void threadFunction(int id);
 
